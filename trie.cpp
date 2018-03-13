@@ -59,7 +59,9 @@ public:
         for (auto& kv : node->children)
         {
             TrieNode* node = kv.second.get();
-            _search_leaf(node, result);
+            _search_leaf(node, result, result_n);
+
+            if (result_n <= 0) break;
         }
 
         return result.size();
@@ -81,18 +83,22 @@ private:
         return node;
     }
 
-    int _search_leaf(TrieNode* node, vector<string> result)
+    void _search_leaf(TrieNode* node, vector<string> result, int& left)
     {
+        if (left <= 0) return;
+
         if (!node->val.empty()) 
         {
             result.push_back(node->val);
+            --left;
         }
         else
         {
             for (auto& kv : node->children) 
             {
                 TrieNode* node = kv.second.get();
-                _search_leaf(node, result);
+                _search_leaf(node, result, left);
+                if (left <= 0) return;
             }
         }
     }
