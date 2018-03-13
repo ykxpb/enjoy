@@ -4,6 +4,8 @@
 #include <vector>
 #include <memory>
 
+#include "spinlock.h"
+
 using namespace std;
 
 namespace enjoy
@@ -19,7 +21,8 @@ class Trie
 {
 public:
     Trie():
-        root_(unique_ptr<TrieNode>(new TrieNode))
+        root_(unique_ptr<TrieNode>(new TrieNode)),
+        lock_(unique_ptr<Spinlock>(new Spinlock))
     {
     }
 
@@ -83,7 +86,12 @@ private:
             char c = s[index+i];
             if (!node->children[c])
             {
-                node->children[c] = unique_ptr<TrieNode>(new TrieNode);
+                lock_->lock();
+                if (!node->children[c])
+                {
+                    node->children[c] = unique_ptr<TrieNode>(new TrieNode);
+                }
+                lock_->unlock();
             }
 
             node = node->children[c].get();
@@ -127,6 +135,7 @@ private:
 
 private:
     unique_ptr<TrieNode> root_;
+    unique_ptr<Spinlock> lock_;
 };
 
 };
