@@ -1,30 +1,32 @@
 #ifndef SPINLOCK
 #define SPINLOCK
 
+#include <atomic>
+
 class Spinlock {
 public:
     Spinlock():
-        lock_(0)
+        lock_(ATOMIC_FLAG_INIT)
     {
     }
 
     inline void lock()
     {
-        while(__sync_lock_test_and_set(&lock_, 1)) {}
+        while(!atomic_flag_test_and_set(&lock_)) {}
     }
 
     inline bool trylock()
     {
-        return __sync_lock_test_and_set(&lock_, 1) == 0;
+        return !atomic_flag_test_and_set(&lock_);
     }
 
     inline void unlock()
     {
-        __sync_lock_release(&lock_);
+        atomic_flag_clear(&lock_);
     }
 
 private:
-    int lock_;
+    std::atomic_flag lock_;
 };
 
 
